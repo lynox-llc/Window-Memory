@@ -1,45 +1,81 @@
-# Window Memory V1.1
+<div align="center">
 
-Mac のメニューバーアプリ。ウィンドウ配置を保存し、1クリックで復元します。
-外部モニターの抜き差しで崩れた配置を、元通りに戻せます。
+<img src="icon.png" width="128" alt="Window Memory">
 
-## 機能
+# Window Memory
 
-- **アプリ配置保存** — 起動中の全アプリのウィンドウ位置・サイズを記録
-- **1クリック復元** — メニューから選ぶだけで一括復元（⌘1〜⌘9 のショートカット付き）
-- **ディスプレイごとにプロファイル保存** — モニター構成ごとに自動でグループ分け。
-  同じ構成に戻ったときだけ、その配置が「Restore Layout」に出ます
-- **ログイン時に自動起動**（トグル）
-- Dock に出ないメニューバー常駐アプリ
+**ウィンドウ配置を1クリックで復元する、Mac用メニューバーアプリ**
 
-### V1.1 の変更点
+外部モニターを外したり再接続したりすると崩れるウィンドウ配置を、いつもの状態に戻します。
 
-- V1.0で欠落していたアプリ本体・Info.plist・ビルドスクリプトを追加
-- Accessibility権限がない場合に、メニューから設定画面を直接開ける導線を追加
-- 保存時にウィンドウが取得できなかった場合は保存せず、理由を通知
-- 復元結果を確認し、照合できなかったウィンドウ数を警告
-- 保存レイアウトの削除と、現在のディスプレイ構成だけを表示するメニューを追加
-- `SMAppService` によるログイン時起動の登録・解除
-- JSONを一時ファイル経由で保存し、書き込み中の破損を防止
+[![Download](https://img.shields.io/badge/⬇_ダウンロード-Releases-4F6BFF?style=for-the-badge)](https://github.com/lynox-llc/Window-Memory/releases)
+&nbsp;
+![Platform](https://img.shields.io/badge/macOS-13%2B-black?style=for-the-badge&logo=apple)
+![Price](https://img.shields.io/badge/料金-無料-2CB84F?style=for-the-badge)
 
-## 使い方
+</div>
 
-1. `/Applications/Window Memory.app` を起動（メニューバーに ⊞ アイコンが出ます）
-2. **初回のみ**アクセシビリティ権限を許可：
-   システム設定 → プライバシーとセキュリティ → アクセシビリティ →
-   「Window Memory」をオン
-   （メニューの「Grant Access in System Settings…」から直接開けます）
-3. 好きな配置にしてから **Save Current Layout…** → 名前を付けて保存
-4. 配置が崩れたら **Restore Layout → 保存した名前** で一発復元
+---
 
-## しくみ
+## ✨ 機能
 
-macOS の Accessibility API（`AXUIElement`）で各アプリのウィンドウ位置・サイズを
-読み書きします。保存先は
-`~/Library/Application Support/WindowMemory/profiles.json`。
-ウィンドウの照合はウィンドウタイトル → ウィンドウ番号の順で行います。
+- 🖥 **アプリ配置保存** — 起動中の全アプリのウィンドウ位置・サイズをまとめて記録
+- ⚡️ **1クリック復元** — メニューから選ぶだけで一括復元（⌘1〜⌘9 のショートカット対応）
+- 🔀 **ディスプレイごとのプロファイル** — モニター構成ごとに自動グループ化。同じ構成に戻ったときだけ、その配置が「Restore Layout」に表示されます
+- 🚀 **ログイン時に自動起動**
+- 🔒 **プライバシー重視** — 配置データはお使いのMac内にのみ保存。外部への送信は一切ありません
+- 🪶 Dockに出ない軽量なメニューバー常駐アプリ
 
-## ビルド
+## 💻 動作環境
+
+- macOS 13 以降
+- Swift / AppKit 製
+
+## 📥 インストール
+
+1. [**Releases ページ**](https://github.com/lynox-llc/Window-Memory/releases)から最新のDMGをダウンロードして開く
+2. `Window Memory` を `Applications` フォルダへドラッグ
+
+### 🔑 初回起動の手順（重要）
+
+このアプリはApple署名を行っていないため、初回のみセキュリティ確認を通す操作が必要です。
+（2回目以降は普通にダブルクリックで起動できます）
+
+1. `アプリケーション` フォルダの **Window Memory をダブルクリック**
+   → 「開発元を確認できないため開けません」と表示されます（**正常です**）
+2. **システム設定 →「プライバシーとセキュリティ」** を開き、下へスクロール
+3. 「"Window Memory"は開発元を確認できないためブロックされました」の横の **【このまま開く】** をクリック
+4. 確認ダイアログでもう一度 **【開く】** をクリック
+
+> [!WARNING]
+> **macOS 15 (Sequoia) 以降では、右クリック →「開く」では開けません。** 必ず上記3の **【このまま開く】** をお使いください。
+
+> [!TIP]
+> どうしても開けない場合は、ターミナルで次の1行を実行すると確実です：
+> ```bash
+> xattr -dr com.apple.quarantine "/Applications/Window Memory.app"
+> ```
+
+### アクセシビリティを許可（必須）
+
+ウィンドウを操作するために許可が必要です。
+
+**システム設定 →「プライバシーとセキュリティ」→「アクセシビリティ」→ Window Memory をオン**
+
+> [!NOTE]
+> アプリを**更新した場合は、以前の許可が無効になることがあります。** その場合はリストから一度「−」で削除し、「＋」で `/Applications/Window Memory.app` を追加し直してください。
+
+## 🚀 使い方
+
+1. メニューバーの **⊞ アイコン** をクリック
+2. **「Save Current Layout…」** で今のウィンドウ配置に名前を付けて保存
+3. 配置が崩れたら **「Restore Layout」→ 保存した名前** を選ぶだけ
+
+## 🛠 しくみ
+
+macOS の Accessibility API（`AXUIElement`）で各アプリのウィンドウ位置・サイズを読み書きします。配置データの保存先は `~/Library/Application Support/WindowMemory/profiles.json`。ウィンドウの照合は「ウィンドウタイトル → ウィンドウ番号」の順で行います。
+
+## ⚙️ ソースからビルド
 
 ```bash
 ./build.sh          # build/Window Memory.app を生成
@@ -48,29 +84,27 @@ open "build/Window Memory.app"
 
 必要環境：macOS 13+ / Swift（Xcode Command Line Tools）
 
-## 構成
+| ファイル | 役割 |
+|---|---|
+| `WindowMemory/Sources/main.swift` | アプリ本体（メニューバーUI + ウィンドウ制御 + 永続化） |
+| `WindowMemory/Info.plist` | バンドル設定（`LSUIElement` = メニューバー常駐） |
+| `build.sh` | ビルド & `.app` 化 |
 
-```
-WindowMemory/
-├── Sources/main.swift   アプリ本体（メニューバー UI + ウィンドウ制御 + 永続化）
-├── Info.plist           バンドル設定（LSUIElement = メニューバー常駐）
-├── build.sh             ビルド & .app 化スクリプト
-└── README.md
-```
+## ❓ よくある質問
 
-## V1.1の検証
+<details>
+<summary>「開発元を確認できないため開けません」と出ます</summary>
 
-ビルドはmacOS上で次のコマンドを実行します。Accessibility APIを使うため、実機で権限を許可した後に保存・復元を確認してください。
+正常です。上記「初回起動の手順」の **【このまま開く】** をお使いください。Apple署名（公証）を行っていないための表示で、アプリの安全性とは別の話です。
+</details>
 
-```bash
-./build.sh
-codesign --verify --deep --strict "build/Window Memory.app"
-plutil -p "build/Window Memory.app/Contents/Info.plist"
-```
+<details>
+<summary>復元したのに一部のウィンドウが動きません</summary>
 
-## 補足
+保存時に起動していたアプリが、復元時に起動していない場合はそのウィンドウは配置されません。対象アプリを起動してから復元してください。
+</details>
 
-- 商用配布する場合は Apple Developer 証明書での署名と公証（notarization）が必要です
-  （現状はアドホック署名）。
-- ミニマイズ中・サイズ 0 のウィンドウは保存対象外です。
-- V1.1では、既存JSONの読み込みに失敗した場合は空のプロファイルとして起動します。元ファイルは上書きしません。
+## 📄 ライセンス / 開発
+
+開発： **LYNOX LLC**
+© 2026 LYNOX LLC. All rights reserved.
