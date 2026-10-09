@@ -1,33 +1,53 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# Build Window Memory.app from source.
 set -euo pipefail
 
-APP_NAME="Window Memory"
-ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BUILD_DIR="$ROOT_DIR/build"
-APP_DIR="$BUILD_DIR/$APP_NAME.app"
-mkdir -p "$BUILD_DIR"
-rm -rf "$APP_DIR"
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+APP="$ROOT/build/Window Memory.app"
+MACOS="$APP/Contents/MacOS"
+RES="$APP/Contents/Resources"
 
-# main.swift uses top-level executable statements, which requires the default
-# (non-library) parse mode — -parse-as-library needs an explicit @main entry
-# point and fails to compile this file.
-swiftc "$ROOT_DIR/WindowMemory/Sources/main.swift" \
-  -O \
-  -o "$BUILD_DIR/WindowMemory" \
-  -framework AppKit -framework ApplicationServices -framework ServiceManagement -framework CoreGraphics \
-  -target "$(uname -m)-apple-macos13.0"
+echo "› Cleaning previous build"
+rm -rf "$ROOT/build"
+mkdir -p "$MACOS" "$RES"
 
-mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources"
-mv "$BUILD_DIR/WindowMemory" "$APP_DIR/Contents/MacOS/WindowMemory"
-cp "$ROOT_DIR/WindowMemory/Info.plist" "$APP_DIR/Contents/Info.plist"
+echo "› Compiling (arm64 + x86_64 universal)"
+swiftc -O \
+    -target arm64-apple-macos13.0 \
+    -o "$ROOT/build/wm-arm64" \
+    "$ROOT/Sources/main.swift"
 
-# Bundle the app icon if a compiled .icns is available (built from
-# AppIcon.iconset via `iconutil -c icns AppIcon.iconset -o AppIcon.icns`).
-if [ -f "$ROOT_DIR/AppIcon.icns" ]; then
-  cp "$ROOT_DIR/AppIcon.icns" "$APP_DIR/Contents/Resources/AppIcon.icns"
+# Build an Intel slice too if the SDK supports it; ignore if unavailable.
+if swiftc -O -target x86_64-apple-macos13.0 \
+    -o "$ROOT/build/wm-x86_64" \
+    "$ROOT/Sources/main.swift" 2>/dev/null; then
+    lipo -create -output "$MACOS/WindowMemory" \
+        "$ROOT/build/wm-arm64" "$ROOT/build/wm-x86_64"
+    rm -f "$ROOT/build/wm-x86_64"
+    echo "  built universal binary"
+else
+    mv "$ROOT/build/wm-arm64" "$MACOS/WindowMemory"
+    echo "  built arm64-only binary"
+fi
+rm -f "$ROOT/build/wm-arm64"
+chmod +x "$MACOS/WindowMemory"
+
+echo "› Assembling bundle"
+cp "$ROOT/Info.plist" "$APP/Contents/Info.plist"
+
+# Optional icon, if AppIcon.icns was generated.
+if [ -f "$ROOT/AppIcon.icns" ]; then
+    cp "$ROOT/AppIcon.icns" "$RES/AppIcon.icns"
 fi
 
-xattr -cr "$APP_DIR" 2>/dev/null || true
-codesign --force --sign - --timestamp=none "$APP_DIR/Contents/MacOS/WindowMemory"
-codesign --force --sign - --timestamp=none "$APP_DIR"
-echo "Built $APP_DIR"
+echo "› 拡張属性を除去（署名を壊さないため署名前に実施）"
+xattr -cr "$APP" 2>/dev/null || true
+find "$APP" -name '.DS_Store' -delete 2>/dev/null || true
+
+echo "› Ad-hoc code signing"
+# --deep は非推奨。バンドル内を内側から順に署名する。
+codesign --force --sign - --timestamp=none "$MACOS/WindowMemory"
+codesign --force --sign - --timestamp=none "$APP"
+codesign --verify --strict "$APP" && echo "  署名OK"
+
+echo "✓ Built: $APP"
