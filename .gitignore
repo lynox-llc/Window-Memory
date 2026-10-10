@@ -11,3 +11,4 @@ AppIcon.iconset/
 # 署名の一時ファイル
 *.p12
 *.zip
+backups/
