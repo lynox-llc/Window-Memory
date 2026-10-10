@@ -15,7 +15,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 APP="$ROOT/build/Window Memory.app"
-DMG="$ROOT/build/WindowMemory-1.0.dmg"
+VERSION="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$ROOT/Info.plist")"
+DMG="$ROOT/build/WindowMemory-$VERSION.dmg"
 
 : "${DEV_ID:?DEV_ID を設定してください}"
 : "${AC_PROFILE:?AC_PROFILE を設定してください}"
