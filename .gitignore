@@ -1,0 +1,13 @@
+# ビルド生成物
+build/
+*.dmg
+
+# アイコンの中間ファイル（AppIcon.icns は残す）
+AppIcon.iconset/
+
+# macOS
+.DS_Store
+
+# 署名の一時ファイル
+*.p12
+*.zip
